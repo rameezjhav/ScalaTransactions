@@ -21,6 +21,14 @@ object CodingAssignment {
     }.toList
 
   def main(args: Array[String]): Unit = {
-    println(s"test -> $transactions")
+    val question1: Unit =
+      totalTransactionAmountByDay(transactions).map{
+        case (day, total) => println(s"Day $day - £$total")
+      }
   }
+
+  //QUESTION 1
+  //Groups by transaction day, then maps the transaction amount for each day and sums it up
+  def totalTransactionAmountByDay(transactions: List[Transaction]): Map[Int, Double] = transactions.groupMapReduce(_.transactionDay)(_.transactionAmount)(_ + _)
+
 }
