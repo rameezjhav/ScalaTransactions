@@ -28,21 +28,22 @@ object CodingAssignment {
       }
 
     val question2: Unit =
-      averageSpendPerTransactionCategory(transactions).foreach{ x =>
-        println(x)
-      }
+      averageSpendPerTransactionCategory(transactions).foreach(println(_))
 
     val question3: Unit = {
       println(s"Day,Account Id,Maximum,Average,AA Total Value,CC Total Value,FF Total Value")
       1 to 30 foreach { day =>
-        transactionDetailsByAccountPerDay(transactions, day).foreach(_.foreach(x => println(s"${x.day},${x.accountId},${x.max},${x.average},${x.aa},${x.cc},${x.ff}")))
+        transactionDetailsByAccountPerDay(transactions, day).foreach(_.foreach(x =>
+          println(s"${x.day},${x.accountId},${x.max},${x.average},${x.aa},${x.cc},${x.ff}")
+        ))
       }
     }
   }
 
   //QUESTION 1
   //Groups by transaction day, then maps the transaction amount for each day and sums it up
-  def totalTransactionAmountByDay(transactions: List[Transaction]): Map[Int, Double] = transactions.groupMapReduce(_.transactionDay)(_.transactionAmount)(_ + _)
+  def totalTransactionAmountByDay(transactions: List[Transaction]): Map[Int, Double] =
+    transactions.groupMapReduce(_.transactionDay)(_.transactionAmount)(_ + _)
 
 
   //QUESTION 2
@@ -84,8 +85,9 @@ object CodingAssignment {
       val solver: Seq[TransactionDetails] = ids.map(id => {                   //Mapping for each Id
         val initialTransactions: Seq[Transaction] = groupedByAccount(id)      //Passing the Id into the map to return a seq of transactions for that ID (for given day)
 
-        @tailrec                              //Recursion used to traverse the map
-        def recurse(transactions: Seq[Transaction], max: Double = 0, total: Double = 0, count: Int = 0, aa: Double = 0.0, cc: Double = 0.0, ff: Double = 0.0): TransactionDetails = {
+        @tailrec
+        def recurse(transactions: Seq[Transaction], max: Double = 0, total: Double = 0,
+                    count: Int = 0, aa: Double = 0.0, cc: Double = 0.0, ff: Double = 0.0): TransactionDetails = {
           transactions.headOption match {                                                                       //getting the head value as an optional and creating a match case
             case Some(transaction) =>                                                                           //if head returns a value match this case
               val newMax = if (transaction.transactionAmount > max) transaction.transactionAmount else max      //for each transaction value, keeps larger one
