@@ -1,25 +1,8 @@
 import CodingAssignment._
 import org.scalatest.freespec.AnyFreeSpec
+import CodingAssignmentConstants.{testData, testDataExtended}
 
 class CodingAssignmentSpec extends AnyFreeSpec {
-
-  val testData: List[Transaction] = List(
-    Transaction(transactionId = "t001", accountId = "a001", transactionDay = 1, category = "AA", transactionAmount = 2.0),
-    Transaction(transactionId = "t002", accountId = "a002", transactionDay = 1, category = "CC", transactionAmount = 2.0),
-    Transaction(transactionId = "t003", accountId = "a001", transactionDay = 1, category = "FF", transactionAmount = 3.0),
-    Transaction(transactionId = "t004", accountId = "a002", transactionDay = 1, category = "AA", transactionAmount = 5.0),
-    Transaction(transactionId = "t005", accountId = "a001", transactionDay = 1, category = "CC", transactionAmount = 10.0),
-    Transaction(transactionId = "t006", accountId = "a002", transactionDay = 2, category = "FF", transactionAmount = 2.0),
-    Transaction(transactionId = "t007", accountId = "a001", transactionDay = 2, category = "AA", transactionAmount = 4.0),
-    Transaction(transactionId = "t008", accountId = "a002", transactionDay = 2, category = "CC", transactionAmount = 6.0),
-    Transaction(transactionId = "t009", accountId = "a001", transactionDay = 2, category = "FF", transactionAmount = 8.0),
-    Transaction(transactionId = "t0010", accountId = "a002", transactionDay = 2, category = "AA", transactionAmount = 10.0),
-    Transaction(transactionId = "t0011", accountId = "a001", transactionDay = 3, category = "CC", transactionAmount = 5.0),
-    Transaction(transactionId = "t0012", accountId = "a002", transactionDay = 3, category = "FF", transactionAmount = 4.0),
-    Transaction(transactionId = "t0013", accountId = "a001", transactionDay = 3, category = "AA", transactionAmount = 9.0),
-    Transaction(transactionId = "t0014", accountId = "a002", transactionDay = 3, category = "CC", transactionAmount = 1.0),
-    Transaction(transactionId = "t0015", accountId = "a001", transactionDay = 3, category = "FF", transactionAmount = 13.0)
-  )
 
   //QUESTION 1
   "totalTransactionAmountByDay" -  {
@@ -73,32 +56,24 @@ class CodingAssignmentSpec extends AnyFreeSpec {
 
   //QUESTION 3
   "transactionDetailsByAccountPerDay" - {
-    "must return the correct transaction details per account for a given day" - {
+    "must return the correct transaction details for the 5 day rolling window per account for a given day" - {
 
-      val testTransactionDetails: Seq[Seq[TransactionDetails]] = transactionDetailsByAccountPerDay(testData, 4)
+      val testTransactionDetails: Seq[Seq[TransactionDetails]] = transactionDetailsByAccountPerDay(testDataExtended, 6)
 
-      "for day 1" - {
+      "for day 6" - {
         "account a001" in {
-          assert(testTransactionDetails.head.head == TransactionDetails(1, "a001", 10.0, 5.0, 2.0, 10.0, 3.0))
+          assert(testTransactionDetails.head.head == TransactionDetails(6, "a001", 13.0, 7, 38.0, 25.0, 28.0))
         }
         "account a002" in {
-          assert(testTransactionDetails.head(1) == TransactionDetails(1, "a002", 5.0, 3.5, 5.0, 2.0, 0.0))
+          assert(testTransactionDetails.head(1) == TransactionDetails(6, "a002", 10.0, 5.0, 21.0, 19.0, 20.0))
         }
       }
-      "for day 2" - {
+      "for day 7" - {
         "account a001" in {
-          assert(testTransactionDetails(1).head == TransactionDetails(2, "a002", 10.0, 6.0, 10.0, 6.0, 2.0))
+          assert(testTransactionDetails(1).head == TransactionDetails(7, "a002", 13.0, 7.0, 36.0, 19.0, 29.0))
         }
         "account a002" in {
-          assert(testTransactionDetails(1)(1) == TransactionDetails(2, "a001", 8.0, 6.0, 4.0, 0.0, 8.0))
-        }
-      }
-      "for day 3" - {
-        "account a001" in {
-          assert(testTransactionDetails(2).head == TransactionDetails(3, "a001", 13.0, 9.0, 9.0, 5.0, 13.0))
-        }
-        "account a002" in {
-          assert(testTransactionDetails(2)(1) == TransactionDetails(3, "a002", 4.0, 2.5, 0.0, 1.0, 4.0))
+          assert(testTransactionDetails(1)(1) == TransactionDetails(7, "a001", 10.0, 5.0, 18.0, 19.0, 26.0))
         }
       }
     }
