@@ -58,22 +58,27 @@ class CodingAssignmentSpec extends AnyFreeSpec {
   "transactionDetailsByAccountPerDay" - {
     "must return the correct transaction details for the 5 day rolling window per account for a given day" - {
 
-      val testTransactionDetails: Seq[Seq[TransactionDetails]] = transactionDetailsByAccountPerDay(testDataExtended, 6)
-
       "for day 6" - {
+        val testTransactionDetails: Seq[TransactionDetails] = transactionDetailsByAccountPerDay(testDataExtended, 6)
+
         "account a001" in {
-          assert(testTransactionDetails.head.head == TransactionDetails(6, "a001", 13.0, 7, 38.0, 25.0, 28.0))
+          assert(testTransactionDetails.head == TransactionDetails(6, "a001", 13.0, 7, 38.0, 25.0, 28.0))
         }
+
         "account a002" in {
-          assert(testTransactionDetails.head(1) == TransactionDetails(6, "a002", 10.0, 5.0, 21.0, 19.0, 20.0))
+          assert(testTransactionDetails(1) == TransactionDetails(6, "a002", 10.0, 5.0, 21.0, 19.0, 20.0))
         }
       }
+
       "for day 7" - {
-        "account a001" in {
-          assert(testTransactionDetails(1).head == TransactionDetails(7, "a002", 13.0, 7.0, 36.0, 19.0, 29.0))
-        }
+        val testTransactionDetails: Seq[TransactionDetails] = transactionDetailsByAccountPerDay(testDataExtended, 7)
+
         "account a002" in {
-          assert(testTransactionDetails(1)(1) == TransactionDetails(7, "a001", 10.0, 5.0, 18.0, 19.0, 26.0))
+          assert(testTransactionDetails.head == TransactionDetails(7, "a002", 10.0, 5.0, 18.0, 21.0, 26.0))
+        }
+
+        "account a001" in {
+          assert(testTransactionDetails(1) == TransactionDetails(7, "a001", 13.0, 7.0, 36.0, 19.0, 29.0))
         }
       }
     }
