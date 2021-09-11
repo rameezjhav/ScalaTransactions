@@ -22,26 +22,22 @@ object CodingAssignment {
     }.toList
 
   def main(args: Array[String]): Unit = {
-//    val question1: Unit =
-//      totalTransactionAmountByDay(transactions).foreach{
-//        case (day, total) => println(s"Day $day - £$total")
-//      }
-//
-//    val question2: Unit =
-//      averageSpendPerTransactionCategory(transactions).foreach(println(_))
-//
-//    val question3: Unit = {
-//      println(s"Day,Account Id,Maximum,Average,AA Total Value,CC Total Value,FF Total Value")
-//      1 to 30 foreach { day =>
-//        transactionDetailsByAccountPerDay(transactions, day).foreach(_.foreach(x =>
-//          println(s"${x.day},${x.accountId},${x.max},${x.average},${x.aa},${x.cc},${x.ff}")
-//        ))
-//      }
-//    }
-      val question3: Unit = transactionDetailsByAccountPerDay(transactions, 5).foreach(_.foreach(x =>
-            println(s"${x.day},${x.accountId},${x.max},${x.average},${x.aa},${x.cc},${x.ff}")
-          ))
+    val question1: Unit =
+      totalTransactionAmountByDay(transactions).foreach{
+        case (day, total) => println(s"Day $day - £$total")
+      }
 
+    val question2: Unit =
+      averageSpendPerTransactionCategory(transactions).foreach(println(_))
+
+    val question3: Unit = {
+      println(s"Day,Account Id,Maximum,Average,AA Total Value,CC Total Value,FF Total Value")
+      1 to 30 foreach { day =>
+        transactionDetailsByAccountPerDay(transactions, day).foreach(x =>
+          println(s"${x.day},${x.accountId},${x.max},${x.average},${x.aa},${x.cc},${x.ff}")
+        )
+      }
+    }
   }
 
   //QUESTION 1
@@ -77,73 +73,35 @@ object CodingAssignment {
                                )
 
 
-  def transactionDetailsByAccountPerDay(transactions: List[Transaction], day: Int): Seq[Seq[TransactionDetails]] = {
-    val start = if (day <= 5) 1 else day - 5                                //calculates the start date for the rolling window
-    val range: Seq[Int] = start until day                                   //creates a range of days
+  def transactionDetailsByAccountPerDay(transactions: List[Transaction], day: Int): Seq[TransactionDetails] = {
+    val start = if (day <= 5) 1 else day - 5                        //calculates the start date for the rolling window
+    val range: Seq[Int] = start until day                           //creates a range of days
 
-    range.map(day => {                                                                                          //mapping for each day
-      val transactionsForGivenDay: Seq[Transaction] = transactions.groupBy(_.transactionDay)(day)               //Sequence of transactions for a given day
-      val ids: Seq[String] = transactionsForGivenDay.map(_.accountId).distinct                                  //All account IDs for a given day
-      val groupedByAccount: Map[String, Seq[Transaction]] = transactionsForGivenDay.groupBy(_.accountId)        //Grouping the transactions for a given day by accountID
+    val transactionsInRollingWindow: Seq[Transaction] = range.flatMap(transactions.groupBy(_.transactionDay)(_))        //creating a list of transactions for the rolling time window
+    val ids: Seq[String] = transactionsInRollingWindow.map(_.accountId).distinct                                        //getting all the unique IDs
+    val transactionsGroupedByAccount: Map[String, Seq[Transaction]] = transactionsInRollingWindow.groupBy(_.accountId)  //grouping the transactions by IDs
 
-      val solver: Seq[TransactionDetails] = ids.map(id => {                   //Mapping for each Id
-        val initialTransactions: Seq[Transaction] = groupedByAccount(id)      //Passing the Id into the map to return a seq of transactions for that ID (for given day)
+    val solver = ids.map(id => {                                    //Mapping for each Id
+      val initialTransactions = transactionsGroupedByAccount(id)    //Passing the Id into the map to return a seq of transactions for that ID (for given day)
 
-        @tailrec
-        def recurse(transactions: Seq[Transaction], max: Double = 0, total: Double = 0,
-                    count: Int = 0, aa: Double = 0.0, cc: Double = 0.0, ff: Double = 0.0): TransactionDetails = {
-          transactions.headOption match {                                                                       //getting the head value as an optional and creating a match case
-            case Some(transaction) =>                                                                           //if head returns a value match this case
-              val newMax = if (transaction.transactionAmount > max) transaction.transactionAmount else max      //for each transaction value, keeps larger one
-              val newTotal = total + transaction.transactionAmount                                              //Keeps a sum of the total transaction value for average
-              val newCount = count + 1                                                                          //Keeping count of transactions for average
-              val newAA = if (transaction.category == "AA") aa + transaction.transactionAmount else aa          //Adds transactionAmount to category if matches
-              val newCC = if (transaction.category == "CC") cc + transaction.transactionAmount else cc          //Adds transactionAmount to category if matches
-              val newFF = if (transaction.category == "FF") ff + transaction.transactionAmount else ff          //Adds transactionAmount to category if matches
+      @tailrec
+      def transactionStatistics(transactions: Seq[Transaction], max: Double = 0, total: Double = 0,
+                                count: Int = 0, aa: Double = 0.0, cc: Double = 0.0, ff: Double = 0.0): TransactionDetails = {
+        transactions.headOption match {                                                                         //getting the head value as an optional and creating a match case
+          case Some(transaction) =>                                                                             //if head returns a value match this case
+            val newMax = if (transaction.transactionAmount > max) transaction.transactionAmount else max        //for each transaction value, keeps larger one
+            val newTotal = total + transaction.transactionAmount                                                //Keeps a sum of the total transaction value for average
+            val newCount = count + 1                                                                            //Keeping count of transactions for average
+            val newAA = if (transaction.category == "AA") aa + transaction.transactionAmount else aa            //Adds transactionAmount to category if matches
+            val newCC = if (transaction.category == "CC") cc + transaction.transactionAmount else cc            //Adds transactionAmount to category if matches
+            val newFF = if (transaction.category == "FF") ff + transaction.transactionAmount else ff            //Adds transactionAmount to category if matches
 
-              recurse(transactions.tail, newMax, newTotal, newCount, newAA, newCC, newFF)                       //Calls itself with the tail of the sequence and the updated values
-            case None => TransactionDetails(day, id, max, total / count, aa, cc, ff)                            //Returns the values when no more transactions are left in the sequence
-          }
+            transactionStatistics(transactions.tail, newMax, newTotal, newCount, newAA, newCC, newFF)           //Calls itself with the tail of the sequence and the updated values
+          case None => TransactionDetails(day, id, max, total / count, aa, cc, ff)                              //Returns the values when no more transactions are left in the sequence
         }
-        recurse(initialTransactions)          //Calling the recursive method with the initial seq of transactions
-      })
-      solver
+      }
+      transactionStatistics(initialTransactions)                      //Calling the recursive method with the initial seq of transactions
     })
+    solver
   }
-
-
-  def transactionDetailsByAccountPerDay2(transactions: List[Transaction], day: Int) = {
-    val start = if (day <= 5) 1 else day - 5                                //calculates the start date for the rolling window
-    val range: Seq[Int] = start until day                                   //creates a range of days
-
-    range.map(day => {                                                                                          //mapping for each day
-      val transactionsForGivenDay: Seq[Transaction] = transactions.groupBy(_.transactionDay)(day)               //Sequence of transactions for a given day
-      val ids: Seq[String] = transactionsForGivenDay.map(_.accountId).distinct                                  //All account IDs for a given day
-      val groupedByAccount: Map[String, Seq[Transaction]] = transactionsForGivenDay.groupBy(_.accountId)        //Grouping the transactions for a given day by accountID
-
-      val solver: Seq[TransactionDetails] = ids.map(id => {                   //Mapping for each Id
-        val initialTransactions: Seq[Transaction] = groupedByAccount(id)      //Passing the Id into the map to return a seq of transactions for that ID (for given day)
-
-        @tailrec
-        def recurse(transactions: Seq[Transaction], max: Double = 0, total: Double = 0,
-                    count: Int = 0, aa: Double = 0.0, cc: Double = 0.0, ff: Double = 0.0): TransactionDetails = {
-          transactions.headOption match {                                                                       //getting the head value as an optional and creating a match case
-            case Some(transaction) =>                                                                           //if head returns a value match this case
-              val newMax = if (transaction.transactionAmount > max) transaction.transactionAmount else max      //for each transaction value, keeps larger one
-              val newTotal = total + transaction.transactionAmount                                              //Keeps a sum of the total transaction value for average
-              val newCount = count + 1                                                                          //Keeping count of transactions for average
-              val newAA = if (transaction.category == "AA") aa + transaction.transactionAmount else aa          //Adds transactionAmount to category if matches
-              val newCC = if (transaction.category == "CC") cc + transaction.transactionAmount else cc          //Adds transactionAmount to category if matches
-              val newFF = if (transaction.category == "FF") ff + transaction.transactionAmount else ff          //Adds transactionAmount to category if matches
-
-              recurse(transactions.tail, newMax, newTotal, newCount, newAA, newCC, newFF)                       //Calls itself with the tail of the sequence and the updated values
-            case None => TransactionDetails(day, id, max, total / count, aa, cc, ff)                            //Returns the values when no more transactions are left in the sequence
-          }
-        }
-        recurse(initialTransactions)          //Calling the recursive method with the initial seq of transactions
-      })
-      solver
-    })
-  }
-
 }
